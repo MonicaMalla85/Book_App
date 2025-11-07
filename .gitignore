@@ -1,0 +1,23 @@
+# File di sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Cache e temporanei
+*.log
+*.cache
+*.tmp
+*.bak
+*.swp
+
+# Composer
+vendor/
+composer.lock
+
+# Sessioni o file temporanei
+sessions/
+cookies/
+uploads/
