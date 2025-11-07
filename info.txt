@@ -1,0 +1,17 @@
+Creare un'applicazione formata da 
+
+    -header
+    -footer
+    -functions    -> addBook() , printBook(), searchBook()   se proprio tutto funziona -> deleteBook
+    -index
+    -Book (classe)
+    -style.css 
+    -bootstrap con cdn
+    -repo su github
+    -inizializzate con git
+    
+    -salvataggio sessione in cookies
+
+
+
+Book : titolo, autore, anno, prezzo, numero pagine
