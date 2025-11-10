@@ -7,16 +7,48 @@ if(session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Inserisci 3 libri di esempio solo se la sessione è vuota
+// Messaggio flash
+$message = '';
+
+// Inserisci libri di esempio se la sessione è vuota
 if(empty($_SESSION['books'])) {
     addBook('Libro 1', 'Autore A', 2020, 15.5, 200);
     addBook('Libro 2', 'Autore B', 2018, 20, 150);
     addBook('Libro 3', 'Autore C', 2022, 12, 300);
 }
+
+// AGGIUNTA
+if (isset($_POST['add'])) {
+    addBook($_POST['titolo'], $_POST['autore'], $_POST['anno'], $_POST['prezzo'], $_POST['pagine']);
+    $message = "📖 '{$_POST['titolo']}' aggiunto con successo!";
+}
+
+// ELIMINAZIONE
+if (isset($_POST['delete'])) {
+    deleteBook($_POST['delete_titolo']);
+    $message = "❌ '{$_POST['delete_titolo']}' eliminato con successo!";
+}
+
+// MODIFICA
+if (isset($_POST['update'])) {
+    editBook($_POST['vecchio_titolo'], [
+        'titolo' => $_POST['titolo'],
+        'autore' => $_POST['autore'],
+        'anno' => $_POST['anno'],
+        'prezzo' => $_POST['prezzo'],
+        'pagine' => $_POST['pagine']
+    ]);
+    $message = "✏️ '{$_POST['titolo']}' modificato con successo!";
+}
 ?>
 
 <div class="container mt-4">
     <h1 class="mb-4 text-center">📚 Libreria PHP</h1>
+
+    <!-- ALERT FLASH -->
+    <?php if($message): ?>
+        <div class="alert alert-info text-center"><?= $message ?></div>
+    <?php endif; ?>
 
     <!-- FORM AGGIUNTA LIBRO -->
     <form method="post" class="mb-4 bg-light p-3 rounded shadow-sm">
@@ -39,63 +71,6 @@ if(empty($_SESSION['books'])) {
     </form>
 
     <?php
-    // AGGIUNTA
-    if (isset($_POST['add'])) {
-        addBook($_POST['titolo'], $_POST['autore'], $_POST['anno'], $_POST['prezzo'], $_POST['pagine']);
-        header("Location: index.php");
-        exit();
-    }
-
-    // ELIMINAZIONE
-    if (isset($_POST['delete'])) {
-        deleteBook($_POST['delete_titolo']);
-        header("Location: index.php");
-        exit();
-    }
-
-    // FORM MODIFICA
-    if (isset($_POST['edit'])) {
-        $bookDaModificare = null;
-        foreach ($_SESSION['books'] as $book) {
-            if ($book->titolo === $_POST['edit_titolo']) {
-                $bookDaModificare = $book;
-                break;
-            }
-        }
-
-        if ($bookDaModificare) {
-            echo '
-            <div class="bg-light p-3 rounded shadow mb-4">
-                <h4>Modifica libro: ' . htmlspecialchars($bookDaModificare->titolo) . '</h4>
-                <form method="post">
-                    <input type="hidden" name="vecchio_titolo" value="' . htmlspecialchars($bookDaModificare->titolo) . '">
-                    <div class="row g-2">
-                        <div class="col-md-2"><input type="text" name="titolo" class="form-control" value="' . htmlspecialchars($bookDaModificare->titolo) . '" required></div>
-                        <div class="col-md-2"><input type="text" name="autore" class="form-control" value="' . htmlspecialchars($bookDaModificare->autore) . '" required></div>
-                        <div class="col-md-2"><input type="number" name="anno" class="form-control" value="' . htmlspecialchars($bookDaModificare->anno) . '" required></div>
-                        <div class="col-md-2"><input type="number" step="0.01" name="prezzo" class="form-control" value="' . htmlspecialchars($bookDaModificare->prezzo) . '" required></div>
-                        <div class="col-md-2"><input type="number" name="pagine" class="form-control" value="' . htmlspecialchars($bookDaModificare->pagine) . '" required></div>
-                        <div class="col-md-2"><button type="submit" name="update" class="btn btn-success w-100">Salva</button></div>
-                    </div>
-                </form>
-            </div>
-            ';
-        }
-    }
-
-    // AGGIORNAMENTO DATI LIBRO
-    if (isset($_POST['update'])) {
-        editBook($_POST['vecchio_titolo'], [
-            'titolo' => $_POST['titolo'],
-            'autore' => $_POST['autore'],
-            'anno' => $_POST['anno'],
-            'prezzo' => $_POST['prezzo'],
-            'pagine' => $_POST['pagine']
-        ]);
-        header("Location: index.php");
-        exit();
-    }
-
     // RICERCA
     if (isset($_GET['search']) && !empty($_GET['search'])) {
         $risultati = searchBook($_GET['search']);
@@ -128,16 +103,13 @@ if(empty($_SESSION['books'])) {
         </div>
     </div>
 
-    <!-- Chart.js incluso prima dello script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <script>
     <?php
     $titoli = [];
     $prezzi = [];
     $autori = [];
     $pagine = [];
-
     foreach ($_SESSION['books'] as $book) {
         $titoli[] = addslashes($book->titolo);
         $prezzi[] = $book->prezzo;
@@ -145,49 +117,38 @@ if(empty($_SESSION['books'])) {
         $pagine[] = $book->pagine;
     }
     ?>
-
-    // Prezzo vs Titolo (linea)
-    const ctxPrezzo = document.getElementById('prezzoChart').getContext('2d');
-    new Chart(ctxPrezzo, {
+    // Prezzo vs Titolo
+    new Chart(document.getElementById('prezzoChart'), {
         type: 'line',
         data: {
-            labels: <?php echo json_encode($titoli); ?>,
+            labels: <?= json_encode($titoli) ?>,
             datasets: [{
                 label: 'Prezzo (€)',
-                data: <?php echo json_encode($prezzi); ?>,
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                data: <?= json_encode($prezzi) ?>,
                 borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 2,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 fill: true,
                 tension: 0.3
             }]
         },
-        options: {
-            responsive: true,
-            scales: { y: { beginAtZero: true } }
-        }
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
 
-    // Pagine vs Autore (linea)
-    const ctxPagine = document.getElementById('pagineChart').getContext('2d');
-    new Chart(ctxPagine, {
+    // Pagine vs Autore
+    new Chart(document.getElementById('pagineChart'), {
         type: 'line',
         data: {
-            labels: <?php echo json_encode($autori); ?>,
+            labels: <?= json_encode($autori) ?>,
             datasets: [{
-                label: 'Numero Pagine',
-                data: <?php echo json_encode($pagine); ?>,
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                label: 'Numero di pagine',
+                data: <?= json_encode($pagine) ?>,
                 borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 2,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 fill: true,
                 tension: 0.3
             }]
         },
-        options: {
-            responsive: true,
-            scales: { y: { beginAtZero: true } }
-        }
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
     </script>
 
