@@ -1,10 +1,24 @@
-<?php include 'header.php'; ?>
-<?php include 'functions.php'; ?>
+<?php 
+include 'header.php'; 
+include 'functions.php'; 
+
+// Inizializza sessione
+if(session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Inserisci 3 libri di esempio solo se la sessione è vuota
+if(empty($_SESSION['books'])) {
+    addBook('Libro 1', 'Autore A', 2020, 15.5, 200);
+    addBook('Libro 2', 'Autore B', 2018, 20, 150);
+    addBook('Libro 3', 'Autore C', 2022, 12, 300);
+}
+?>
 
 <div class="container mt-4">
     <h1 class="mb-4 text-center">📚 Libreria PHP</h1>
 
-    <!-- Form Aggiungi -->
+    <!-- FORM AGGIUNTA LIBRO -->
     <form method="post" class="mb-4 bg-light p-3 rounded shadow-sm">
         <div class="row g-2">
             <div class="col-md-2"><input type="text" name="titolo" class="form-control" placeholder="Titolo" required></div>
@@ -16,7 +30,7 @@
         </div>
     </form>
 
-    <!-- Form Ricerca -->
+    <!-- FORM RICERCA -->
     <form method="get" class="mb-4">
         <div class="input-group">
             <input type="text" name="search" class="form-control" placeholder="Cerca per titolo...">
@@ -25,17 +39,21 @@
     </form>
 
     <?php
+    // AGGIUNTA
     if (isset($_POST['add'])) {
         addBook($_POST['titolo'], $_POST['autore'], $_POST['anno'], $_POST['prezzo'], $_POST['pagine']);
-        echo "<div class='alert alert-success'>Libro aggiunto con successo!</div>";
+        header("Location: index.php");
+        exit();
     }
 
+    // ELIMINAZIONE
     if (isset($_POST['delete'])) {
         deleteBook($_POST['delete_titolo']);
-        echo "<div class='alert alert-warning'>Libro eliminato con successo.</div>";
+        header("Location: index.php");
+        exit();
     }
 
-    // Form Modifica
+    // FORM MODIFICA
     if (isset($_POST['edit'])) {
         $bookDaModificare = null;
         foreach ($_SESSION['books'] as $book) {
@@ -65,6 +83,7 @@
         }
     }
 
+    // AGGIORNAMENTO DATI LIBRO
     if (isset($_POST['update'])) {
         editBook($_POST['vecchio_titolo'], [
             'titolo' => $_POST['titolo'],
@@ -73,9 +92,11 @@
             'prezzo' => $_POST['prezzo'],
             'pagine' => $_POST['pagine']
         ]);
-        echo "<div class='alert alert-success'>Libro modificato con successo!</div>";
+        header("Location: index.php");
+        exit();
     }
 
+    // RICERCA
     if (isset($_GET['search']) && !empty($_GET['search'])) {
         $risultati = searchBook($_GET['search']);
         echo "<h3>Risultati ricerca:</h3>";
@@ -90,8 +111,86 @@
         }
     }
 
+    // STAMPA TABELLA
     printBooks();
     ?>
+
+    <!-- GRAFICI LINEE -->
+    <h3 class="mt-5">📊 Grafici Libreria</h3>
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Prezzo per Titolo</h5>
+            <canvas id="prezzoChart"></canvas>
+        </div>
+        <div class="col-md-6">
+            <h5>Pagine per Autore</h5>
+            <canvas id="pagineChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart.js incluso prima dello script -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+    <?php
+    $titoli = [];
+    $prezzi = [];
+    $autori = [];
+    $pagine = [];
+
+    foreach ($_SESSION['books'] as $book) {
+        $titoli[] = addslashes($book->titolo);
+        $prezzi[] = $book->prezzo;
+        $autori[] = addslashes($book->autore);
+        $pagine[] = $book->pagine;
+    }
+    ?>
+
+    // Prezzo vs Titolo (linea)
+    const ctxPrezzo = document.getElementById('prezzoChart').getContext('2d');
+    new Chart(ctxPrezzo, {
+        type: 'line',
+        data: {
+            labels: <?php echo json_encode($titoli); ?>,
+            datasets: [{
+                label: 'Prezzo (€)',
+                data: <?php echo json_encode($prezzi); ?>,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // Pagine vs Autore (linea)
+    const ctxPagine = document.getElementById('pagineChart').getContext('2d');
+    new Chart(ctxPagine, {
+        type: 'line',
+        data: {
+            labels: <?php echo json_encode($autori); ?>,
+            datasets: [{
+                label: 'Numero Pagine',
+                data: <?php echo json_encode($pagine); ?>,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+    </script>
+
 </div>
 
 <?php include 'footer.php'; ?>
