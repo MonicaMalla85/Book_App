@@ -1,7 +1,7 @@
 # 📚 Libreria PHP
 
 Applicazione PHP per gestire una libreria personale.  
-Permette di **aggiungere**, **visualizzare**, **cercare** **modificare** e **eliminare** libri.  
+Permette di **aggiungere**, **visualizzare**, **cercare**, **modificare** e **eliminare** libri.  
 I dati vengono salvati in **sessione e cookie**.
 
 ---
