@@ -2,7 +2,7 @@ Creare un'applicazione formata da
 
     -header
     -footer
-    -functions    -> addBook() , printBook(), searchBook()   se proprio tutto funziona -> deleteBook
+    -functions    -> addBook() , printBook(), searchBook()   se proprio tutto funziona -> deleteBook() e editBook()
     -index
     -Book (classe)
     -style.css 

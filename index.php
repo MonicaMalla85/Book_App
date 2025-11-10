@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <h1 class="mb-4 text-center">📚 Libreria PHP</h1>
 
-    <!-- FORM AGGIUNTA -->
+    <!-- Form Aggiungi -->
     <form method="post" class="mb-4 bg-light p-3 rounded shadow-sm">
         <div class="row g-2">
             <div class="col-md-2"><input type="text" name="titolo" class="form-control" placeholder="Titolo" required></div>
@@ -16,7 +16,7 @@
         </div>
     </form>
 
-    <!-- FORM RICERCA -->
+    <!-- Form Ricerca -->
     <form method="get" class="mb-4">
         <div class="input-group">
             <input type="text" name="search" class="form-control" placeholder="Cerca per titolo...">
@@ -33,6 +33,47 @@
     if (isset($_POST['delete'])) {
         deleteBook($_POST['delete_titolo']);
         echo "<div class='alert alert-warning'>Libro eliminato con successo.</div>";
+    }
+
+    // Form Modifica
+    if (isset($_POST['edit'])) {
+        $bookDaModificare = null;
+        foreach ($_SESSION['books'] as $book) {
+            if ($book->titolo === $_POST['edit_titolo']) {
+                $bookDaModificare = $book;
+                break;
+            }
+        }
+
+        if ($bookDaModificare) {
+            echo '
+            <div class="bg-light p-3 rounded shadow mb-4">
+                <h4>Modifica libro: ' . htmlspecialchars($bookDaModificare->titolo) . '</h4>
+                <form method="post">
+                    <input type="hidden" name="vecchio_titolo" value="' . htmlspecialchars($bookDaModificare->titolo) . '">
+                    <div class="row g-2">
+                        <div class="col-md-2"><input type="text" name="titolo" class="form-control" value="' . htmlspecialchars($bookDaModificare->titolo) . '" required></div>
+                        <div class="col-md-2"><input type="text" name="autore" class="form-control" value="' . htmlspecialchars($bookDaModificare->autore) . '" required></div>
+                        <div class="col-md-2"><input type="number" name="anno" class="form-control" value="' . htmlspecialchars($bookDaModificare->anno) . '" required></div>
+                        <div class="col-md-2"><input type="number" step="0.01" name="prezzo" class="form-control" value="' . htmlspecialchars($bookDaModificare->prezzo) . '" required></div>
+                        <div class="col-md-2"><input type="number" name="pagine" class="form-control" value="' . htmlspecialchars($bookDaModificare->pagine) . '" required></div>
+                        <div class="col-md-2"><button type="submit" name="update" class="btn btn-success w-100">Salva</button></div>
+                    </div>
+                </form>
+            </div>
+            ';
+        }
+    }
+
+    if (isset($_POST['update'])) {
+        editBook($_POST['vecchio_titolo'], [
+            'titolo' => $_POST['titolo'],
+            'autore' => $_POST['autore'],
+            'anno' => $_POST['anno'],
+            'prezzo' => $_POST['prezzo'],
+            'pagine' => $_POST['pagine']
+        ]);
+        echo "<div class='alert alert-success'>Libro modificato con successo!</div>";
     }
 
     if (isset($_GET['search']) && !empty($_GET['search'])) {

@@ -2,23 +2,19 @@
 require_once 'Book.php';
 session_start();
 
-// Inizializza la lista di libri se non esiste
 if (!isset($_SESSION['books'])) {
     $_SESSION['books'] = [];
-    // Se esiste un cookie precedente, caricalo
     if (isset($_COOKIE['books'])) {
         $_SESSION['books'] = unserialize($_COOKIE['books']);
     }
 }
 
-// ➕ Aggiungi libro
 function addBook($titolo, $autore, $anno, $prezzo, $pagine) {
     $book = new Book($titolo, $autore, $anno, $prezzo, $pagine);
     $_SESSION['books'][] = $book;
-    setcookie('books', serialize($_SESSION['books']), time() + (86400 * 30), "/"); // 30 giorni
+    setcookie('books', serialize($_SESSION['books']), time() + (86400 * 30), "/");
 }
 
-// 🔍 Cerca libro per titolo
 function searchBook($termine) {
     $risultati = array_filter($_SESSION['books'], function($book) use ($termine) {
         return stripos($book->titolo, $termine) !== false;
@@ -26,7 +22,6 @@ function searchBook($termine) {
     return $risultati;
 }
 
-// ❌ Elimina libro
 function deleteBook($titolo) {
     $_SESSION['books'] = array_filter($_SESSION['books'], function($book) use ($titolo) {
         return $book->titolo !== $titolo;
@@ -34,7 +29,21 @@ function deleteBook($titolo) {
     setcookie('books', serialize($_SESSION['books']), time() + (86400 * 30), "/");
 }
 
-// 🖨️ Stampa tutti i libri in tabella
+// ✏️ Edit book
+function editBook($vecchioTitolo, $nuoviDati) {
+    foreach ($_SESSION['books'] as &$book) {
+        if ($book->titolo === $vecchioTitolo) {
+            $book->titolo = $nuoviDati['titolo'] ?? $book->titolo;
+            $book->autore = $nuoviDati['autore'] ?? $book->autore;
+            $book->anno = $nuoviDati['anno'] ?? $book->anno;
+            $book->prezzo = $nuoviDati['prezzo'] ?? $book->prezzo;
+            $book->pagine = $nuoviDati['pagine'] ?? $book->pagine;
+            break;
+        }
+    }
+    setcookie('books', serialize($_SESSION['books']), time() + (86400 * 30), "/");
+}
+
 function printBooks() {
     if (empty($_SESSION['books'])) {
         echo "<p class='text-muted'>Nessun libro inserito.</p>";
@@ -68,9 +77,11 @@ function printBooks() {
                 <td>
                     <form method='post' class='d-inline'>
                         <input type='hidden' name='delete_titolo' value='{$book->titolo}'>
-                        <button type='submit' name='delete' class='btn btn-sm btn-danger'>
-                            Elimina
-                        </button>
+                        <button type='submit' name='delete' class='btn btn-sm btn-danger'>Elimina</button>
+                    </form>
+                    <form method='post' class='d-inline'>
+                        <input type='hidden' name='edit_titolo' value='{$book->titolo}'>
+                        <button type='submit' name='edit' class='btn btn-sm btn-warning'>Modifica</button>
                     </form>
                 </td>
             </tr>
