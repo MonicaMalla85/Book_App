@@ -76,12 +76,12 @@ function printBooks() {
                 <td>{$book->pagine}</td>
                 <td>
                     <form method='post' class='d-inline'>
-                        <input type='hidden' name='delete_titolo' value='{$book->titolo}'>
-                        <button type='submit' name='delete' class='btn btn-sm btn-danger'>Elimina</button>
-                    </form>
-                    <form method='post' class='d-inline'>
                         <input type='hidden' name='edit_titolo' value='{$book->titolo}'>
                         <button type='submit' name='edit' class='btn btn-sm btn-warning'>Modifica</button>
+                    </form>                
+                    <form method='post' class='d-inline'>
+                        <input type='hidden' name='delete_titolo' value='{$book->titolo}'>
+                        <button type='submit' name='delete' class='btn btn-sm btn-danger'>Elimina</button>
                     </form>
                 </td>
             </tr>
