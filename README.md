@@ -17,6 +17,8 @@ I dati vengono salvati in **sessione e cookie**.
 
 ![Screenshot dell app](./images/screenshot4.png)
 
+![Screenshot dell app](./images/screenshot5.png)
+
 ---
 
 
